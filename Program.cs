@@ -1,7 +1,13 @@
+
+using Microsoft.AspNetCore.SignalR;
+using RealTimeWeather.Hubs;
+using RealTimeWeather.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -21,5 +27,16 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+app.MapHub<NotificationHub>("notifications-hub");
+
+app.MapPost("notifications/all", async (
+    string content,
+    IHubContext<NotificationHub, INotificationClient> context) =>
+    {
+        await context.Clients.All.ReceiveNotification(content);
+
+        return Results.NoContent();
+    });
 
 app.Run();
